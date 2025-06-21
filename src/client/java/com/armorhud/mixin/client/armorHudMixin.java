@@ -48,7 +48,6 @@ public abstract class armorHudMixin {
 	@Unique
 	private void renderArmor(DrawContext context, RenderTickCounter tickCounter) {
 		int scaledWidth = context.getScaledWindowWidth();
-
 		assert client.player != null;
 
         ArmorAccessor armorAccessor = armorHud.getArmorAccessor();
@@ -56,15 +55,19 @@ public abstract class armorHudMixin {
 
 		final int hungerWidth = 80 + 8; // Bar advances 8 pixels to the left 10 times, 8 is added for the width of the last sprite.
 		final int armorWidth = 15;
-		final int barWidth = armorWidth * pieces;
-		float hungerX = scaledWidth / 2f + 91;
+		final float spacingFactor = 1.35f;
+		final float pieceOffset = armorWidth * spacingFactor;
+		final float barWidth = pieceOffset * pieces;
+
+		float hungerX = scaledWidth / 2f + 91f;
 		float x = hungerX - hungerWidth / 2f + barWidth / 2f;
 		x += 2; // This makes it look better because the helmet is thinner.
 
-        for (int j = 0; j < pieces; j++) {
-			x -= armorWidth;
-			int armorPiece;
 
+
+		for (int j = 0; j < pieces; j++) {
+			x -= pieceOffset;
+			int armorPiece;
 			if (config.RTL) {
 				armorPiece = (pieces - 1) - j;
 			} else {
@@ -86,6 +89,31 @@ public abstract class armorHudMixin {
 		context.drawItem(player, stack, 0, 0, 1);
 
 		context.drawStackOverlay(this.client.textRenderer, stack, 0,0);
+		// Draw durability percentage above the armor icon
+		if (stack.isDamageable() && stack.isDamaged()) {
+			int maxDamage = stack.getMaxDamage();
+			int damage = stack.getDamage();
+			int durability = maxDamage - damage;
+			String percentageText = Math.round((double) durability / maxDamage * 100) + "%";
+
+			// Measure text at default scale
+			int rawTextWidth = this.client.textRenderer.getWidth(percentageText);
+			if (rawTextWidth > 0) {
+				float targetWidth = 16f;
+				float scale = targetWidth / rawTextWidth;
+
+				// Centered position above icon
+				float offsetX = (16f - rawTextWidth * scale) / 2f;
+				float offsetY = -10f;
+
+				context.getMatrices().push();
+				context.getMatrices().translate(offsetX, offsetY, 0);
+				context.getMatrices().scale(scale, scale, 1f);
+				context.drawText(this.client.textRenderer, percentageText, 0, 0, stack.getItemBarColor(), true);
+				context.getMatrices().pop();
+			}
+		}
+
 		context.getMatrices().pop();
 	}
 
