@@ -90,7 +90,7 @@ public abstract class armorHudMixin {
 
 		context.drawStackOverlay(this.client.textRenderer, stack, 0,0);
 		// Draw durability percentage above the armor icon
-		if (stack.isDamageable() && stack.isDamaged()) {
+		if (stack.isDamageable()) {
 			int maxDamage = stack.getMaxDamage();
 			int damage = stack.getDamage();
 			int durability = maxDamage - damage;
